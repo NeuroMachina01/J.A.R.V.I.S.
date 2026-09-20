@@ -71,18 +71,32 @@ async def websocket_endpoint(websocket: WebSocket):
             # Run the synchronous LangGraph brain in a separate thread
             output = await asyncio.to_thread(brain.process, query)
             
-            # Send result to UI
-            if output.requires_display:
-                await websocket.send_json({
-                    "type": "result",
-                    "agent": output.source,
-                    "text": output.result,
-                    "confidence": output.confidence
-                })
+            import re
+            def clean_text(text: str) -> str:
+                text = re.sub(r'[\*\#\`\|]', '', text)
+                text = re.sub(r'\[.*?\]\(.*?\)', '', text)
+                text = re.sub(r'\s+', ' ', text).strip()
+                return text
+                
+            clean_result = clean_text(output.result)
             
-            # Trigger audio
+            # Synchronize UI with Audio
+            def sync_display():
+                if output.requires_display:
+                    asyncio.run_coroutine_threadsafe(
+                        websocket.send_json({
+                            "type": "result",
+                            "agent": output.source,
+                            "text": clean_result,
+                            "confidence": output.confidence
+                        }),
+                        server_loop
+                    )
+
             if output.requires_voice:
-                mouth.speak(output.result)
+                mouth.speak(clean_result, on_ready_callback=sync_display)
+            else:
+                sync_display()
                 
     except WebSocketDisconnect:
         active_connections.remove(websocket)

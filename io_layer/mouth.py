@@ -1,23 +1,17 @@
 import os
 import time
-import base64
 import tempfile
 import threading
 import queue
 import logging
-import winsound
-from dotenv import load_dotenv
-from sarvamai import SarvamAI
+import asyncio
+import edge_tts
+import pygame
 
-load_dotenv()
 logger = logging.getLogger(__name__)
 
-sarvam_api_key = os.getenv("SARVAM_API_KEY")
-if sarvam_api_key:
-    client = SarvamAI(api_subscription_key=sarvam_api_key)
-else:
-    logger.error("SARVAM_API_KEY not found in .env")
-    client = None
+# Initialize PyGame mixer for audio playback
+pygame.mixer.init()
 
 class Mouth:
     def __init__(self):
@@ -28,51 +22,76 @@ class Mouth:
 
     def _speak_worker(self):
         while True:
-            text = self.speech_queue.get()
-            if text is None: 
+            item = self.speech_queue.get()
+            if item is None: 
                 break
                 
-            self.speak_and_wait(text)
+            text, on_ready_callback = item
+            self.speak_and_wait(text, on_ready_callback)
             self.speech_queue.task_done()
 
-    def speak(self, text: str):
+    def speak(self, text: str, on_ready_callback=None):
         """Asynchronous: Adds text to the queue and returns immediately."""
-        self.speech_queue.put(text)
+        self.speech_queue.put((text, on_ready_callback))
 
-    def speak_and_wait(self, text: str):
+    def speak_and_wait(self, text: str, on_ready_callback=None):
         """Synchronous: Blocks the thread until the audio is finished."""
         if not text.strip():
+            if on_ready_callback: on_ready_callback()
             return
             
         with self._lock:
             try:
-                if not client:
-                    logger.error("Sarvam AI client not initialized.")
-                    return
-
-                # Convert text to speech using Sarvam AI (Indian accent + code-switching)
-                response = client.text_to_speech.convert(
-                    text=text,
-                    language_code="hi-IN", # Supports Hinglish natively
-                    speaker="shubh",
-                    model="bulbul:v3"
-                )
+                import re
+                voice = "en-IN-NeerjaNeural"
                 
-                if response and response.audios and len(response.audios) > 0:
-                    audio_data = base64.b64decode(response.audios[0])
+                # Split text into sentences for ultra-low latency chunking
+                sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', text) if s.strip()]
+                if not sentences:
+                    sentences = [text.strip()]
                     
-                    # Create a temporary file to play the WAV audio
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f:
-                        f.write(audio_data)
-                        temp_path = f.name
+                file_queue = queue.Queue()
+                
+                def prefetcher():
+                    for i, sentence in enumerate(sentences):
+                        try:
+                            temp_path = os.path.join(tempfile.gettempdir(), f"jarvis_speech_{i}_{int(time.time())}.mp3")
+                            communicate = edge_tts.Communicate(sentence, voice, rate="+15%")
+                            asyncio.run(communicate.save(temp_path))
+                            file_queue.put(temp_path)
+                        except Exception as e:
+                            logger.error(f"TTS fetch error: {e}")
+                    file_queue.put(None)
+                    
+                # Start downloading sentences in the background
+                threading.Thread(target=prefetcher, daemon=True).start()
+                
+                callback_fired = False
+                
+                while True:
+                    path = file_queue.get()
+                    if path is None:
+                        break
                         
-                    # Play the audio file
-                    winsound.PlaySound(temp_path, winsound.SND_FILENAME)
-                    
-                    # Clean up
-                    os.remove(temp_path)
+                    # Trigger the UI exactly as the first sentence is ready to play
+                    if not callback_fired and on_ready_callback:
+                        on_ready_callback()
+                        callback_fired = True
+                        
+                    try:
+                        pygame.mixer.music.load(path)
+                        pygame.mixer.music.play()
+                        
+                        while pygame.mixer.music.get_busy():
+                            time.sleep(0.05)
+                            
+                        pygame.mixer.music.unload()
+                        os.remove(path)
+                    except Exception as e:
+                        logger.error(f"Playback error: {e}")
+                        
             except Exception as e:
-                logger.error(f"Mouth output error: {e}")
+                logger.error(f"Mouth output error (Edge-TTS): {e}")
 
 # --- THE SINGLETON INSTANCE ---
 mouth = Mouth()
