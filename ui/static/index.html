@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J.A.R.V.I.S. // AI CORE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Particle field + neural web canvas -->
+    <canvas id="neural-canvas"></canvas>
+
+    <!-- Ambient radial glow behind the core -->
+    <div class="ambient-glow"></div>
+
+    <!-- Cinematic Agent Title Card (flashes on routing) -->
+    <div id="title-card" class="title-card hidden">
+        <div class="title-card-text" id="title-card-text"></div>
+    </div>
+
+    <div class="hud-container">
+
+        <!-- ═══ TOP-LEFT TELEMETRY ═══ -->
+        <div class="corner-hud top-left">
+            <div class="telemetry-label">SYSTEM STATUS</div>
+            <div class="telemetry-row" id="core-status"><span class="dot green"></span> CORE: ONLINE</div>
+            <div class="telemetry-row" id="uplink-status"><span class="dot green"></span> UPLINK: SECURE</div>
+            <div class="telemetry-row" id="agent-status"><span class="dot cyan"></span> AGENT: IDLE</div>
+        </div>
+
+        <!-- ═══ TOP-RIGHT TELEMETRY ═══ -->
+        <div class="corner-hud top-right">
+            <button id="logs-btn"><span class="btn-icon">◉</span> OBSERVABILITY</button>
+            <div class="telemetry-row right-align">LATENCY: <span class="accent">4ms</span></div>
+            <div class="telemetry-row right-align">MARK: <span class="accent">VII</span></div>
+        </div>
+
+        <!-- ═══ BOTTOM-LEFT DATA STREAM ═══ -->
+        <div class="corner-hud bottom-left">
+            <div class="telemetry-label">DATA STREAM</div>
+            <div id="data-stream"></div>
+        </div>
+
+        <!-- ═══ BOTTOM-RIGHT UPTIME ═══ -->
+        <div class="corner-hud bottom-right">
+            <div class="telemetry-row right-align">UPTIME: <span class="accent" id="uptime-counter">00:00:00</span></div>
+            <div class="telemetry-row right-align">SYNC: <span class="accent">NOMINAL</span></div>
+        </div>
+
+        <!-- ═══ SPLIT: CORE + IMAGE ═══ -->
+        <div class="split-view">
+
+            <!-- The Arc Reactor Core -->
+            <div class="ai-core-container">
+                <!-- Multiple layered rings for depth -->
+                <div class="core-ring ring-outer"></div>
+                <div class="core-ring ring-mid"></div>
+                <div class="core-ring ring-inner"></div>
+                <div class="core-ring ring-micro"></div>
+                <!-- Tick marks on the outer ring -->
+                <div class="ring-ticks"></div>
+                <!-- The blazing center -->
+                <div class="core-dot">
+                    <div class="core-bloom"></div>
+                </div>
+            </div>
+
+            <!-- Holographic Image HUD (right side) -->
+            <div id="image-container">
+                <img id="hud-image" src="" alt="">
+                <div class="image-frame corner-tl"></div>
+                <div class="image-frame corner-tr"></div>
+                <div class="image-frame corner-bl"></div>
+                <div class="image-frame corner-br"></div>
+                <div class="image-scanline"></div>
+            </div>
+
+        </div>
+
+        <!-- ═══ SUBTITLES ═══ -->
+        <div id="agent-messages">
+            <span class="subtitle-text">Awaiting directive.</span>
+        </div>
+
+        <!-- ═══ GLASSMORPHISM CHAT BAR ═══ -->
+        <div class="chat-container">
+            <div class="chat-glow"></div>
+            <span class="chat-prompt">&gt;_</span>
+            <input type="text" id="chat-input" placeholder="Enter directive or hold [CTRL] to speak..." autocomplete="off" spellcheck="false" />
+        </div>
+
+    </div>
+
+    <!-- ═══ LOGS MODAL ═══ -->
+    <div id="logs-overlay" class="hidden"></div>
+    <div id="logs-modal" class="hidden">
+        <div class="modal-header">
+            <span>◉ JARVIS OBSERVABILITY CONSOLE</span>
+            <button id="close-logs">✕</button>
+        </div>
+        <div id="logs-content"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

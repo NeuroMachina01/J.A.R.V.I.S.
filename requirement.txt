@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+websockets
+anthropic
+langgraph
+pydantic
+mss
+SpeechRecognition
+pyaudio
+pyttsx3
+sarvamai==0.1.31a4
