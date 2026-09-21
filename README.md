@@ -16,6 +16,7 @@ Designed and built as a highly modular pipeline, JARVIS demonstrates core applie
 1. **Multi-Agent Architecture**
    - **`ToolAgent`**: Executes Python functions in a continuous ReAct loop (reason & act). Equipped to fetch weather, calculate math, and act as an AI Tutor.
    - **`NexusAgent`**: A RAG-based researcher. It dynamically fetches Wikipedia articles, embeds them using `sentence-transformers`, parses imagery, and writes cinematic documentary scripts.
+   - **`VisionSolverAgent`**: Handles on-screen multimodal problems. Parses the screen capture (via `mss`) and intelligently solves visual math, debugs code errors, or describes what the user is pointing at.
    - **`GeneralAgent`**: Handles conversational empathy, philosophy, and unclassified queries with a distinct personality.
 2. **Semantic & LLM Routing**
    - Implements a fast-path **KeywordDetector** for low-latency dispatch.
@@ -57,10 +58,12 @@ graph TD
         AgentHandoff((Invoke Agent))
         Tool["ToolAgent (ReAct Loop)"]
         Nexus["NexusAgent (RAG/Doc)"]
+        Vision["VisionSolverAgent (Multimodal)"]
         Gen["GeneralAgent (Chat)"]
         
         AgentHandoff --> Tool
         AgentHandoff --> Nexus
+        AgentHandoff --> Vision
         AgentHandoff --> Gen
     end
 
@@ -71,6 +74,7 @@ graph TD
         
         Tool --> TTS
         Nexus --> TTS
+        Vision --> TTS
         Gen --> TTS
         
         TTS --> HUD
