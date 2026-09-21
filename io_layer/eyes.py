@@ -127,9 +127,25 @@ class Eyes:
         """
         logger.info("Eyes: capturing screen...")
         image_bytes = self.capture()
+        
+        # Display the captured screenshot on the HUD
+        try:
+            from io_layer.hud import hud
+            hud.update_image_bytes(image_bytes, caption="SCREEN CAPTURE IN PROGRESS...")
+        except Exception as e:
+            logger.error(f"Failed to push screenshot to HUD: {e}")
+            
         logger.info("Eyes: sending to Vision LLM...")
         result = self.describe(image_bytes)
         logger.info(f"Eyes: detected {result.content_type} (confidence: {result.confidence})")
+        
+        # Update HUD with the result of the vision scan
+        try:
+            from io_layer.hud import hud
+            hud.update_status(f"VISION ANALYSIS COMPLETE: {result.content_type.upper()}")
+        except Exception:
+            pass
+            
         return result
 
     def _parse_response(self, raw: str) -> VisionOutput:

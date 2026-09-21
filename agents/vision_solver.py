@@ -54,6 +54,9 @@ class VisionSolverAgent(BaseAgent):
             HumanMessage(content=f"Screen content: {context}\n\nUser asked: {input.query}")
         ]
 
+        from io_layer.hud import hud
+        hud.update_status("SOLVING VISUAL QUERY...")
+
         response = self.llm.invoke(messages)
         result = response.content
 

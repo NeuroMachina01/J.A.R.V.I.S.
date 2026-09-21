@@ -22,8 +22,8 @@ from io_layer.mouth import mouth
 logger = logging.getLogger(__name__)
 
 # ── Image filter constants ─────────────────────────────────────
-IMG_MIN_WIDTH  = 300
-IMG_MIN_HEIGHT = 200
+IMG_MIN_WIDTH  = 100
+IMG_MIN_HEIGHT = 100
 IMG_MIN_ASPECT = 0.9    # skip very tall portrait images
 IMG_MAX_ASPECT = 5.5    # skip horizontal banners
 IMG_MAX_PER_SOURCE = 3  # max images extracted per URL or PDF
