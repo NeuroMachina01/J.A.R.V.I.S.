@@ -59,6 +59,8 @@ class ToolAgent(BaseAgent):
             "Always use a tool if it can help answer the user's query accurately. "
             "If a tool returns an error, gracefully explain the issue to the user. "
             "Keep your final response concise and natural, as it will be spoken out loud. "
+            "You can use multiple tools in sequence if needed. "
+            "Always think step-by-step. "
             f"\n\nLANGUAGE RULE: {lang_rule}"
         )
         
@@ -69,15 +71,42 @@ class ToolAgent(BaseAgent):
         
         from io_layer.hud import hud
         
-        # Step 1: LLM decides whether to use a tool or just reply
-        hud.update_status("EVALUATING TOOL USAGE...")
-        response = self.llm.invoke(messages)
+        try:
+            hud.update_status("🛠️ Agentic Loop Initiated...")
+        except Exception:
+            pass
+            
+        max_iterations = 5
+        iterations = 0
         
-        # We append the response to our message history so the LLM remembers its own tool calls
-        messages.append(response)
-        
-        # Step 2: Handle Tool Calls
-        if response.tool_calls:
+        while iterations < max_iterations:
+            try:
+                hud.update_status("EVALUATING TOOL USAGE...")
+                response = self.llm.invoke(messages)
+            except Exception as e:
+                logger.error(f"Error executing LLM: {e}")
+                return AgentOutput(
+                    result=f"Error executing LLM: {e}",
+                    confidence=0.95,
+                    source=self.name,
+                    requires_voice=True,
+                    language=lang,
+                )
+            
+            # If the LLM doesn't want to call any more tools, we have our final answer!
+            if not response.tool_calls:
+                return AgentOutput(
+                    result=response.content,
+                    confidence=0.95,
+                    source=self.name,
+                    requires_voice=True,
+                    language=lang,
+                )
+                
+            # Append the LLM's tool requests to the chat history
+            messages.append(response)
+            
+            # Execute each requested tool
             for tool_call in response.tool_calls:
                 tool_name = tool_call["name"]
                 tool_args = tool_call["args"]
@@ -86,7 +115,6 @@ class ToolAgent(BaseAgent):
                 hud.update_status(f"EXECUTING TOOL: {tool_name.upper()}...")
                 logger.info(f"ToolAgent invoking {tool_name} with args: {tool_args}")
                 
-                # Execute the actual python function
                 if tool_name in self.tools_map:
                     try:
                         tool_result = self.tools_map[tool_name].invoke(tool_args)
@@ -104,16 +132,10 @@ class ToolAgent(BaseAgent):
                     tool_call_id=tool_id
                 ))
             
-            # Step 3: LLM synthesizes final answer based on the tool result(s)
-            hud.update_status("SYNTHESIZING RESULTS...")
-            final_response = self.llm.invoke(messages)
-            result_text = final_response.content
-        else:
-            # If no tools were called, just use the direct response
-            result_text = response.content
+            iterations += 1
             
         return AgentOutput(
-            result=result_text,
+            result="I apologize, but I reached the maximum number of reasoning steps without finding an answer.",
             confidence=0.95,
             source=self.name,
             requires_voice=True,
