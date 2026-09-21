@@ -23,7 +23,7 @@ if sys.platform == "win32":
 class DummyHUD:
     def update_status(self, msg): pass
     def clear(self): pass
-    def update_image_bytes(self, b, c=""): pass
+    def update_image_bytes(self, b, caption=""): pass
 sys.modules['io_layer.hud'] = type('hud', (), {'hud': DummyHUD()})()
 
 # Monkey-patch the real mouth to silence TTS

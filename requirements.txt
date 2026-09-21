@@ -1,0 +1,44 @@
+# Web & Server
+fastapi
+uvicorn
+websockets
+streamlit
+pandas
+plotly
+
+# LangChain & AI Ecosystem
+langgraph
+langchain-core
+langchain-google-genai
+langchain-groq
+langchain-huggingface
+langchain-community
+langchain-text-splitters
+pydantic
+sentence-transformers
+groq
+
+# Audio & Voice
+SpeechRecognition
+pyaudio
+edge-tts
+pygame
+
+# Vision & OCR
+Pillow
+pymupdf
+mss
+
+# Web Scraping & APIs
+requests
+beautifulsoup4
+duckduckgo-search
+wikipedia
+
+# Vector Store & Search
+rank_bm25
+faiss-cpu
+
+# System Utilities
+python-dotenv
+keyboard

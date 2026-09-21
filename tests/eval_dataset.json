@@ -1,22 +1,102 @@
 [
   {
-    "query": "What time is it in Tokyo right now?",
+    "query": "What is the current temperature in Reykjavik, and what is the square root of that temperature?",
     "expected_agent": "tool_agent",
-    "eval_criteria": "The response must contain the current time in Tokyo (JST)."
+    "eval_criteria": "The response must provide the temperature in Reykjavik and successfully calculate its square root using tools sequentially."
   },
   {
-    "query": "Hello JARVIS, how are you doing today?",
+    "query": "If it is 3:00 PM in Tokyo, what time is it in New York, and what is the current weather in New York?",
+    "expected_agent": "tool_agent",
+    "eval_criteria": "The response must state the correct corresponding time in New York and provide the current weather in New York."
+  },
+  {
+    "query": "Create a cinematic documentary script explaining the theoretical physics of black holes and event horizons.",
+    "expected_agent": "nexus_agent",
+    "eval_criteria": "The response must be a detailed documentary-style script about black holes."
+  },
+  {
+    "query": "If an AI is programmed to be empathetic, is its empathy a simulation or a new form of digital emotion? Answer in exactly three sentences.",
     "expected_agent": "general",
-    "eval_criteria": "The response must be a polite greeting acknowledging the user."
+    "eval_criteria": "The response must address the philosophical question of AI empathy and be exactly three sentences long."
   },
   {
-    "query": "Give me a medium difficulty physics practice question.",
+    "query": "I am a high school student struggling with classical mechanics. Give me an advanced practice question involving friction and inclined planes.",
     "expected_agent": "tool_agent",
-    "eval_criteria": "The response must provide a physics practice question suitable for a student."
+    "eval_criteria": "The response must provide an advanced physics practice question specifically about friction and inclined planes."
   },
   {
-    "query": "Calculate 452 multiplied by 13.",
+    "query": "Summarize the geopolitical impacts of the fall of the Berlin Wall in 1989.",
+    "expected_agent": "nexus_agent",
+    "eval_criteria": "The response must provide a historical summary of the geopolitical impacts of the Berlin Wall falling."
+  },
+  {
+    "query": "Calculate 15 percent of 950, add 42 to it, and then divide the whole thing by 3.",
     "expected_agent": "tool_agent",
-    "eval_criteria": "The response must state that the answer is 5876."
+    "eval_criteria": "The response must correctly execute the math operations and provide the final answer, which is 61.5."
+  },
+  {
+    "query": "What is the time difference in hours between London and Sydney, and multiply that number by 12.",
+    "expected_agent": "tool_agent",
+    "eval_criteria": "The response must state the time difference between London and Sydney and provide that number multiplied by 12."
+  },
+  {
+    "query": "I feel completely lost in my career right now and don't know what to do next.",
+    "expected_agent": "general",
+    "eval_criteria": "The response must be empathetic, supportive, and offer constructive advice without attempting to use technical tools."
+  },
+  {
+    "query": "Give me a detailed biographical summary of Alan Turing's contributions to computer science and his role in WWII.",
+    "expected_agent": "nexus_agent",
+    "eval_criteria": "The response must summarize Alan Turing's life, focusing on WWII and computer science."
+  },
+  {
+    "query": "पेरिस में अभी मौसम कैसा है?",
+    "expected_agent": "tool_agent",
+    "eval_criteria": "The response must provide the weather in Paris and be written entirely in Hindi."
+  },
+  {
+    "query": "Using your calculator tool, find the value of 2 to the power of 16, then subtract 500.",
+    "expected_agent": "tool_agent",
+    "eval_criteria": "The response must correctly state the mathematical result, which is 65036."
+  },
+  {
+    "query": "Which is heavier, a kilogram of steel or a kilogram of feathers? Explain the psychology behind why people get this wrong.",
+    "expected_agent": "general",
+    "eval_criteria": "The response must state they weigh the same and explain the psychological cognitive bias (e.g., density perception)."
+  },
+  {
+    "query": "Describe the sequence of events during the Apollo 11 moon landing in 1969.",
+    "expected_agent": "nexus_agent",
+    "eval_criteria": "The response must provide a narrative summary of the events of the Apollo 11 moon landing."
+  },
+  {
+    "query": "Get the current time in Dubai. Extract just the hour in 24-hour format, and multiply it by 4.",
+    "expected_agent": "tool_agent",
+    "eval_criteria": "The response must fetch the time in Dubai, isolate the hour, and correctly multiply it by 4."
+  },
+  {
+    "query": "Give me a highly difficult calculus practice question involving integration by parts.",
+    "expected_agent": "tool_agent",
+    "eval_criteria": "The response must provide a complex calculus problem requiring integration by parts."
+  },
+  {
+    "query": "Write a detailed overview of the CRISPR-Cas9 gene editing mechanism and its ethical implications.",
+    "expected_agent": "nexus_agent",
+    "eval_criteria": "The response must explain the CRISPR-Cas9 mechanism and discuss related ethical concerns."
+  },
+  {
+    "query": "What is the temperature in Miami right now, and if I bought 5 shirts for that exact price in dollars, how much would I spend?",
+    "expected_agent": "tool_agent",
+    "eval_criteria": "The response must fetch the temperature in Miami, treat it as a dollar amount, and multiply it by 5."
+  },
+  {
+    "query": "Explain the Trolley Problem and summarize the utilitarian perspective on it.",
+    "expected_agent": "general",
+    "eval_criteria": "The response must accurately describe the Trolley Problem and the utilitarian approach (maximizing overall well-being by pulling the lever)."
+  },
+  {
+    "query": "Summarize the history and development of the internet from ARPANET to the modern World Wide Web.",
+    "expected_agent": "nexus_agent",
+    "eval_criteria": "The response must trace the history of the internet starting from ARPANET to the modern Web."
   }
 ]
