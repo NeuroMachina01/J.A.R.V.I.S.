@@ -1,0 +1,22 @@
+[
+  {
+    "query": "What time is it in Tokyo right now?",
+    "expected_agent": "tool_agent",
+    "eval_criteria": "The response must contain the current time in Tokyo (JST)."
+  },
+  {
+    "query": "Hello JARVIS, how are you doing today?",
+    "expected_agent": "general",
+    "eval_criteria": "The response must be a polite greeting acknowledging the user."
+  },
+  {
+    "query": "Give me a medium difficulty physics practice question.",
+    "expected_agent": "tool_agent",
+    "eval_criteria": "The response must provide a physics practice question suitable for a student."
+  },
+  {
+    "query": "Calculate 452 multiplied by 13.",
+    "expected_agent": "tool_agent",
+    "eval_criteria": "The response must state that the answer is 5876."
+  }
+]
