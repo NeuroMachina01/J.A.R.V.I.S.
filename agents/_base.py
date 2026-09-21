@@ -12,6 +12,7 @@ class AgentInput(BaseModel):
     vision_description: str | None = None  # pre-processed by Eyes
     context: dict = {}                  # memory / conversation history
     session_id: str = "default"
+    language: str = "en"                # detected language: "en" or "hi"
 
 
 class AgentOutput(BaseModel):
@@ -21,6 +22,7 @@ class AgentOutput(BaseModel):
     metadata: dict = {}                 # any extra data (sources, charts, etc.)
     requires_voice: bool = True         # should MOUTH speak this?
     requires_display: bool = True       # should FRONTEND show this?
+    language: str = "en"                # language of the response: "en" or "hi"
 
 
 class BaseAgent(ABC):

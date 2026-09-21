@@ -23,44 +23,50 @@ logger = logging.getLogger(__name__)
 
 def audio_listener_loop():
     """Runs continuously, listening for voice commands."""
-    # Ears can now initialize knowing the API key is ready
     ears = Ears()
     from core.events import event_bus
     
     while True:
-        query = ears.listen()
+        query, language = ears.listen()
         if query:
-            logger.info(f"Processing Voice Input: {query}")
+            logger.info(f"Processing Voice Input [{language}]: {query}")
             
-            # Broadcast the voice query to the HUD!
-            event_bus.emit("broadcast", {"type": "result", "agent": "USER", "text": query, "confidence": 1.0})
-            event_bus.emit("broadcast", {"type": "status", "message": "PROCESSING VOICE QUERY..."})
+            # Broadcast the voice query to the HUD
+            event_bus.emit("broadcast", {
+                "type": "result", "agent": "USER",
+                "text": query, "confidence": 1.0,
+            })
+            event_bus.emit("broadcast", {
+                "type": "status",
+                "message": f"PROCESSING VOICE QUERY [{language.upper()}]...",
+            })
             
-            # Synchronous call since we are in a background thread
-            output = brain.process(query)
+            # Process with language context
+            output = brain.process(query, language=language)
             
             import re
             def clean_text(text: str) -> str:
-                # Remove markdown formatting (*, #, |, `, -, etc.)
                 text = re.sub(r'[\*\#\`\|]', '', text)
-                text = re.sub(r'\[.*?\]\(.*?\)', '', text) # Remove links
-                # Replace multiple spaces/newlines with single space for cinematic display
+                text = re.sub(r'\[.*?\]\(.*?\)', '', text)
                 text = re.sub(r'\s+', ' ', text).strip()
                 return text
                 
             clean_result = clean_text(output.result)
             
+            # Use the language from the agent's response (it may differ from input)
+            response_lang = output.language or language
+
             def sync_display():
                 if output.requires_display:
                     event_bus.emit("broadcast", {
                         "type": "result",
                         "agent": output.source,
                         "text": clean_result,
-                        "confidence": output.confidence
+                        "confidence": output.confidence,
                     })
 
             if output.requires_voice:
-                mouth.speak(clean_result, on_ready_callback=sync_display)
+                mouth.speak(clean_result, language=response_lang, on_ready_callback=sync_display)
             else:
                 sync_display()
 

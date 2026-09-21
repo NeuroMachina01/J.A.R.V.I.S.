@@ -85,6 +85,8 @@ class NarrativeAgent(BaseAgent):
     # ── Entry point ───────────────────────────────────────────
 
     def run(self, input: AgentInput) -> AgentOutput:
+        lang = input.language or "en"
+
         # 1. Parse sources from query + context
         urls, pdf_paths = self._parse_sources(input)
 
@@ -99,6 +101,7 @@ class NarrativeAgent(BaseAgent):
                 result="I couldn't extract content from the provided sources. Check the URLs or PDF paths.",
                 confidence=0.0,
                 source=self.name,
+                language=lang,
             )
 
         # 3. Hybrid retrieval (BM25 + FAISS + RRF)
@@ -107,10 +110,10 @@ class NarrativeAgent(BaseAgent):
 
         # 4. Synthesize documentary narrative
         hud.update_status("Synthesizing narrative...")
-        script = self._synthesize_narrative(input.query, retrieved, all_labels)
+        script = self._synthesize_narrative(input.query, retrieved, all_labels, lang)
 
         # 5. Play story — audio + HUD sync, section by section
-        clean_script = self._play_cinematic_story(script, all_images, all_labels)
+        clean_script = self._play_cinematic_story(script, all_images, all_labels, lang)
 
         # 6. Clean up HUD after story ends
         hud.clear()
@@ -119,9 +122,9 @@ class NarrativeAgent(BaseAgent):
             result=clean_script or script,
             confidence=0.9,
             source=self.name,
-            requires_voice=False,       # voice handled internally via speak_and_wait
-            requires_display=False,     # web UI display is now handled chunk-by-chunk inside _play_cinematic_story
-
+            requires_voice=False,
+            requires_display=False,
+            language=lang,
             metadata={
                 "sources": len(urls) + len(pdf_paths),
                 "images_found": len(all_images),
@@ -382,7 +385,7 @@ class NarrativeAgent(BaseAgent):
     # ── Documentary Synthesizer ───────────────────────────────
 
     def _synthesize_narrative(
-        self, query: str, docs: list, image_labels: list[str]
+        self, query: str, docs: list, image_labels: list[str], language: str = "en"
     ) -> str:
         from langchain_core.messages import SystemMessage, HumanMessage
 
@@ -399,6 +402,13 @@ class NarrativeAgent(BaseAgent):
                 "[SHOW_IMAGE:0], [SHOW_IMAGE:1], etc."
             )
 
+        lang_rule = (
+            "\n\nLANGUAGE: Write the entire script in Hindi (Devanagari script). "
+            "Use natural, conversational Hindi. Technical terms may remain in English."
+            if language == "hi"
+            else "\n\nLANGUAGE: Write the script in clear, natural English."
+        )
+
         system_prompt = (
             "You are JARVIS, an intelligence briefing system. "
             "Your output will be spoken aloud by a text-to-speech engine "
@@ -414,6 +424,7 @@ class NarrativeAgent(BaseAgent):
             "\n[SECTION: SYNTHESIS]"
             "\n(the bigger picture — what this means and what comes next)"
             + image_inventory
+            + lang_rule
         )
 
         messages = [
@@ -427,7 +438,8 @@ class NarrativeAgent(BaseAgent):
     # ── Cinematic Player ──────────────────────────────────────
 
     def _play_cinematic_story(
-        self, script: str, images: list[bytes], labels: list[str]
+        self, script: str, images: list[bytes], labels: list[str],
+        language: str = "en"
     ):
         """
         Parses [SECTION:] tags, syncs HUD image transitions with
@@ -448,7 +460,7 @@ class NarrativeAgent(BaseAgent):
 
         if not sections:
             # Fallback: no section tags found — speak as one block
-            mouth.speak_and_wait(re.sub(r'\[.*?\]', '', script).strip())
+            mouth.speak_and_wait(re.sub(r'\[.*?\]', '', script).strip(), language)
             return
 
         logger.info(f"Director: {len(sections)} sections found")
@@ -469,14 +481,14 @@ class NarrativeAgent(BaseAgent):
             if section["text"]:
                 full_clean_script += section["text"] + "\n\n"
                 
-                # Split by sentence boundaries, keeping punctuation
-                sentences = re.split(r'(?<=[.!?])\s+', section["text"].strip())
+                # Split by sentence boundaries (English + Hindi purna viram)
+                sentences = re.split(r'(?<=[.!?।])\s+', section["text"].strip())
                 
                 for sentence in sentences:
                     if not sentence.strip():
                         continue
                         
-                    # Broadcast the clean sentence to the Web UI right before speaking
+                    # Broadcast the clean sentence to the Web UI
                     try:
                         from core.events import event_bus
                         event_bus.emit("broadcast", {
@@ -488,7 +500,7 @@ class NarrativeAgent(BaseAgent):
                     except Exception as e:
                         logger.error(f"Failed to broadcast text: {e}")
                         
-                    mouth.speak_and_wait(sentence.strip())
+                    mouth.speak_and_wait(sentence.strip(), language)
                 
         return full_clean_script.strip()
 

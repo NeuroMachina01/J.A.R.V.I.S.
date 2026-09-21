@@ -40,6 +40,9 @@ class JARVISState(TypedDict):
     memory: dict
     last_agent: str
 
+    # Language
+    detected_language: str           # "en" or "hi" — flows through entire pipeline
+
 
 # ─── Brain ─────────────────────────────────────────────────────
 
@@ -92,6 +95,7 @@ class Brain:
             vision_description=state.get("vision_description"),
             context=state.get("memory", {}),
             session_id=state["session_id"],
+            language=state.get("detected_language", "en"),
         )
 
         agent_name, confidence = self.router.route(agent_input)
@@ -120,6 +124,7 @@ class Brain:
                 vision_description=state.get("vision_description"),
                 context=state.get("memory", {}),
                 session_id=state["session_id"],
+                language=state.get("detected_language", "en"),
             )
             output = agent.run(agent_input)
             logger.info(f"Agent '{agent_name}' responded (confidence={output.confidence:.2f})")
@@ -188,8 +193,8 @@ class Brain:
 
         return g.compile()
 
-    def process(self, user_input: str, session_id: str = "default") -> AgentOutput:
-        """Single entry point. Takes text, returns AgentOutput."""
+    def process(self, user_input: str, session_id: str = "default", language: str = "en") -> AgentOutput:
+        """Single entry point. Takes text + detected language, returns AgentOutput."""
         import time
         from core.db import db
         start_time = time.time()
@@ -207,6 +212,7 @@ class Brain:
             "agent_output": None,
             "memory": {},
             "last_agent": "",
+            "detected_language": language,
         }
 
         from io_layer.hud import hud

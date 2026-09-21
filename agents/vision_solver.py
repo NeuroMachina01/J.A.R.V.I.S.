@@ -36,7 +36,14 @@ class VisionSolverAgent(BaseAgent):
 
     def run(self, input: AgentInput) -> AgentOutput:
         context = input.vision_description or input.query
+        lang = input.language or "en"
         
+        lang_rule = (
+            "Respond in Hindi (Devanagari script)."
+            if lang == "hi"
+            else "Respond in clear English."
+        )
+
         system_prompt = (
             "You are JARVIS's expert problem solver. "
             "IMPORTANT: The user's screen content has already been captured by your visual cortex "
@@ -46,7 +53,8 @@ class VisionSolverAgent(BaseAgent):
             "2. You DO have access. Treat the 'Screen content' text as exactly what is on the screen right now. "
             "3. Solve the user's problem based on this data clearly, concisely, and directly. "
             "4. Format your answer so it sounds natural when spoken out loud by a text-to-speech engine. "
-            "Avoid using heavy markdown, asterisks, or long code blocks unless the user explicitly asks you to dictate code."
+            "Avoid using heavy markdown, asterisks, or long code blocks unless the user explicitly asks you to dictate code. "
+            f"5. LANGUAGE: {lang_rule}"
         )
 
         messages = [
@@ -65,4 +73,5 @@ class VisionSolverAgent(BaseAgent):
             confidence=0.9,
             source=self.name,
             metadata={"vision_context": context},
+            language=lang,
         )

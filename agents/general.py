@@ -22,7 +22,20 @@ class GeneralAgent(BaseAgent):
         self.llm = primary_llm.with_fallbacks([fallback_llm])
 
     def run(self, input: AgentInput) -> AgentOutput:
-        # Give JARVIS a slight personality instruction
+        # Determine language instruction based on detected language
+        lang = input.language or "en"
+        if lang == "hi":
+            lang_instruction = (
+                "\n\nIMPORTANT LANGUAGE RULE: The user is speaking in Hindi. "
+                "You MUST respond entirely in Hindi (Devanagari script). "
+                "Do NOT mix English words unless they are technical terms with no Hindi equivalent."
+            )
+        else:
+            lang_instruction = (
+                "\n\nIMPORTANT LANGUAGE RULE: The user is speaking in English. "
+                "Respond in clear, natural English."
+            )
+
         system_prompt = """
 You are JARVIS — an autonomous AI agent created by Puskar.
 
@@ -52,9 +65,8 @@ Style:
 
 Current mode:
 You are operating as JARVIS.
-"""
+""" + lang_instruction
         
-        # Combine the prompt and the user's query
         messages = [
             ("system", system_prompt),
             ("human", input.query)
@@ -66,5 +78,6 @@ You are operating as JARVIS.
             result=response.content,
             confidence=1.0,
             source=self.name,
-            requires_voice=True  # Ensure Mouth speaks this out loud
+            requires_voice=True,
+            language=lang,
         )

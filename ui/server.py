@@ -65,11 +65,18 @@ async def websocket_endpoint(websocket: WebSocket):
             if not query:
                 continue
 
+            # Detect language from typed text (Devanagari script detection)
+            from core.language import detect_language
+            language = payload.get("language") or detect_language(query)
+
             # Acknowledge receipt
-            await websocket.send_json({"type": "status", "message": "PROCESSING QUERY..."})
+            await websocket.send_json({
+                "type": "status",
+                "message": f"PROCESSING QUERY [{language.upper()}]...",
+            })
             
             # Run the synchronous LangGraph brain in a separate thread
-            output = await asyncio.to_thread(brain.process, query)
+            output = await asyncio.to_thread(brain.process, query, "default", language)
             
             import re
             def clean_text(text: str) -> str:
@@ -79,6 +86,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 return text
                 
             clean_result = clean_text(output.result)
+            response_lang = output.language or language
             
             # Synchronize UI with Audio
             def sync_display():
@@ -88,13 +96,13 @@ async def websocket_endpoint(websocket: WebSocket):
                             "type": "result",
                             "agent": output.source,
                             "text": clean_result,
-                            "confidence": output.confidence
+                            "confidence": output.confidence,
                         }),
                         server_loop
                     )
 
             if output.requires_voice:
-                mouth.speak(clean_result, on_ready_callback=sync_display)
+                mouth.speak(clean_result, language=response_lang, on_ready_callback=sync_display)
             else:
                 sync_display()
                 
